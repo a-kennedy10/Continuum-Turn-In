@@ -44,9 +44,9 @@ class PostController {
     }
     
     func createPostWith(photo: UIImage, caption: String, completion: @escaping (Post?) -> Void) {
-        let newPost = Post(caption: caption, photo: photo)
-        self.posts.append(newPost)
-        let record = CKRecord(post: newPost)
+        let post = Post(caption: caption, photo: photo)
+        self.posts.append(post)
+        let record = CKRecord(post: post)
         
         CKContainer.default().publicCloudDatabase.save(record) { (record, error) in
             if let error = error {

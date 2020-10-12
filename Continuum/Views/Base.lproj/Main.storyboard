@@ -4,6 +4,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -119,7 +120,7 @@
                                             <subviews>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="81r-jR-a9L">
                                                     <rect key="frame" x="16" y="11" width="343" height="293"/>
-                                                    <color key="backgroundColor" systemColor="systemGray2Color" red="0.68235294120000001" green="0.68235294120000001" blue="0.69803921570000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <color key="backgroundColor" systemColor="opaqueSeparatorColor" red="0.77647058820000003" green="0.77647058820000003" blue="0.7843137255" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                     <state key="normal" title="Select Image"/>
                                                     <connections>
                                                         <action selector="selectImageTapped:" destination="93R-Tj-HbE" eventType="touchUpInside" id="iZ2-Ie-uDI"/>
@@ -387,6 +388,7 @@
                             <constraint firstItem="TSF-he-T7u" firstAttribute="top" secondItem="HcE-9N-eIr" secondAttribute="top" id="abG-vx-6PC"/>
                             <constraint firstItem="TSF-he-T7u" firstAttribute="leading" secondItem="HcE-9N-eIr" secondAttribute="leading" id="zvw-jF-PUu"/>
                         </constraints>
+                        <viewLayoutGuide key="safeArea" id="c6j-Mv-UH5"/>
                     </view>
                     <connections>
                         <outlet property="photoImageView" destination="TSF-he-T7u" id="5oP-pG-F66"/>
