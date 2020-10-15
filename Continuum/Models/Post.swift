@@ -92,13 +92,8 @@ extension Post: SearchableRecord {
         if caption.contains(searchTerm) {
             return true
         } else {
-            for comment in comments {
-                if comment.matches(searchTerm: searchTerm) {
-                    return true
-                }
-            }
+            return false
         }
-        return false
     }
+    
 }
-

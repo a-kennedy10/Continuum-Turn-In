@@ -20,33 +20,40 @@ struct CommentStrings {
 class Comment {
     let text: String
     let timestamp: Date
-    weak var post: Post?
     
     let recordID: CKRecord.ID
-    var postReference: CKRecord.Reference? {
-        guard let post = post else { return nil }
-        return CKRecord.Reference(recordID: post.recordID, action: .deleteSelf)
-    }
+    var postReference: CKRecord.Reference?
     
-    init(text: String, timestamp: Date = Date(), post: Post, recordID: CKRecord.ID = CKRecord.ID(recordName: UUID().uuidString)) {
+    init(text: String, timestamp: Date = Date(), post: Post, recordID: CKRecord.ID = CKRecord.ID(recordName: UUID().uuidString), postReference: CKRecord.Reference?) {
         self.text = text
         self.timestamp = timestamp
-        self.post = post
         self.recordID = recordID
+        self.postReference = postReference
+        
     }
-    
-    convenience init?(ckRecord: CKRecord, post: Post) {
-        guard let text = ckRecord[CommentStrings.textKey] as? String,
-            let timestamp = ckRecord[CommentStrings.timestampKey] as? Date else { return nil }
-            self.init(text: text, timestamp: timestamp, post: post, recordID: ckRecord.recordID)
-    }
-    
     
 }
 
 // MARK: - extensions
-extension Comment: SearchableRecord {
-    func matches(searchTerm: String) -> Bool {
-        return text.contains(searchTerm)
+extension Comment {
+    convenience init?(ckRecord: CKRecord, post: Post) {
+    guard let text = ckRecord[CommentStrings.textKey] as? String,
+        let timestamp = ckRecord[CommentStrings.timestampKey] as? Date else { return nil }
+    let postReference = ckRecord[CommentStrings.postReferenceKey] as? CKRecord.Reference
+    
+    self.init(text: text, timestamp: timestamp, post: post, recordID: ckRecord.recordID, postReference: postReference)
+    }
+}
+
+extension CKRecord {
+    convenience init(comment: Comment) {
+        self.init(recordType: CommentStrings.recordType, recordID: comment.recordID)
+        self.setValuesForKeys([
+            CommentStrings.textKey : comment.text,
+            CommentStrings.timestampKey : comment.timestamp
+        ])
+        if let reference = comment.postReference {
+            self.setValue(reference, forKey: CommentStrings.postReferenceKey)
+        }
     }
 }

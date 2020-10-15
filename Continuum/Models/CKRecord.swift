@@ -18,10 +18,4 @@ extension CKRecord {
         self.setValue(post.commentCount, forKey: PostStrings.commentCountKey)
     }
     
-    convenience init(comment: Comment) {
-        self.init(recordType: CommentStrings.recordType, recordID: comment.recordID)
-        self.setValue(comment.postReference, forKey: CommentStrings.postReferenceKey)
-        self.setValue(comment.text, forKey: CommentStrings.textKey)
-        self.setValue(comment.timestamp, forKey: CommentStrings.timestampKey)
-    }
 }

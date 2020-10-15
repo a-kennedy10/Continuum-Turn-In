@@ -6,13 +6,14 @@
 //  Copyright © 2020 trevorAdcock. All rights reserved.
 //
 
-import Foundation
 import CloudKit
 import UIKit
 
 class PostController {
     // MARK: - singleton
     static let shared = PostController()
+    
+    let publicDB = CKContainer.default().publicCloudDatabase
     
     private init() {
         subscribeToNewPosts(completion: nil)
@@ -23,27 +24,25 @@ class PostController {
     
     
     // MARK: - CRUD
-    func addComment(text: String, post: Post, completion: @escaping (Comment?) -> Void) {
-        let comment = Comment(text: text, post: post)
+    func addComment(text: String, post: Post, completion: @escaping (Result<Comment?, PostError>) -> Void) {
+        
+        let postReference = CKRecord.Reference(recordID: post.recordID, action: .none)
+        let comment = Comment(text: text, post: post, postReference: postReference)
         post.comments.append(comment)
         let record = CKRecord(comment: comment)
-        
-        CKContainer.default().publicCloudDatabase.save(record) { (record, error) in
-            if let error = error {
-                print("Error in \(#function) : \(error.localizedDescription) \n---\n \(error)")
-                completion(nil)
-                return
-            }
+        publicDB.save(record) { (record, error) in
             
-            guard let record = record else { completion(nil); return }
+            if let error = error {
+                return completion(.failure(.ckError(error)))
+            }
+            guard let record = record else { return completion(.failure(.noRecord)) }
             let comment = Comment(ckRecord: record, post: post)
             self.incrementCommentCount(for: post, completion: nil)
-            completion(comment)
+            completion(.success(comment))
         }
-        
     }
     
-    func createPostWith(photo: UIImage, caption: String, completion: @escaping (Post?) -> Void) {
+    func createPostWith(photo: UIImage, caption: String, completion: @escaping (Result<Post?, PostError>) -> Void) {
         let post = Post(caption: caption, photo: photo)
         self.posts.append(post)
         let record = CKRecord(post: post)
@@ -51,34 +50,32 @@ class PostController {
         CKContainer.default().publicCloudDatabase.save(record) { (record, error) in
             if let error = error {
                 print("Error in \(#function) : \(error.localizedDescription) \n---\n \(error)")
-                completion(nil)
-                return
+                return completion(.failure(.ckError(error)))
             }
-            guard let record = record, let post = Post(ckRecord: record) else { completion(nil); return }
-            completion(post)
+            guard let record = record, let post = Post(ckRecord: record) else { return completion(.failure(.noPost)) }
+            completion(.success(post))
         }
     }
     
     // MARK: - read
-    func fetchPosts(completion: @escaping ([Post]?) -> Void) {
+    func fetchPosts(completion: @escaping (Result<[Post]?, PostError>) -> Void) {
         let predicate = NSPredicate(value: true)
         let query = CKQuery(recordType: PostStrings.typeKey, predicate: predicate)
         
         CKContainer.default().publicCloudDatabase.perform(query, inZoneWith: nil) { (records, error) in
             if let error = error {
                 print("Error in \(#function) : \(error.localizedDescription) \n---\n \(error)")
-                completion(nil)
-                return
+                return completion(.failure(.ckError(error)))
             }
-            guard let records = records else { completion(nil); return }
+            guard let records = records else { return completion(.failure(.noRecord)) }
             let posts = records.compactMap{ Post(ckRecord: $0) }
             self.posts = posts
-            completion(posts)
+            completion(.success(posts))
         }
     }
     
     
-    func fetchComments(for post: Post, completion: @escaping ([Comment]?) -> Void) {
+    func fetchComments(for post: Post, completion: @escaping (Result<[Comment]?, PostError>) -> Void) {
         let postReference = post.recordID
         let predicate = NSPredicate(format: "%K == %@", CommentStrings.postReferenceKey, postReference)
         let commentIDS = post.comments.compactMap({$0.recordID})
@@ -91,13 +88,12 @@ class PostController {
         CKContainer.default().publicCloudDatabase.perform(query, inZoneWith: nil) { (records, error) in
             if let error = error {
                 print("Error in \(#function) : \(error.localizedDescription) \n---\n \(error)")
-                completion(nil)
-                return
+                return completion(.failure(.ckError(error)))
             }
-            guard let records = records else { completion(nil); return }
+            guard let records = records else { return completion(.failure(.noRecord)) }
             let comments = records.compactMap{ Comment(ckRecord: $0, post: post) }
             post.comments.append(contentsOf: comments)
-            completion(comments)
+            completion(.success(comments))
         }
     }
     
@@ -118,7 +114,7 @@ class PostController {
             }
             
         }
-        CKContainer.default().publicCloudDatabase.add(modifyOperation)
+        publicDB.add(modifyOperation)
     }
     
     
@@ -204,7 +200,7 @@ class PostController {
                     }
                 }
             } else {
-                self.addSubcriptionTo(commentsForPost: post) { (success, error) in
+                self.addSubcriptionTo(commentsForPost: post, completion:  { ( success, error) in
                     if let error = error {
                         print("Error in \(#function) : \(error.localizedDescription) \n---\n \(error)")
                         completion?(false, error)
@@ -217,7 +213,7 @@ class PostController {
                         print("Something went wrong trying to remove subscription to post \(post.caption)")
                         completion?(false, nil)
                     }
-                }
+                })
             }
         }
     }

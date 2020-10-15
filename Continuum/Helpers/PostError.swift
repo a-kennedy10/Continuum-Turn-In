@@ -10,4 +10,7 @@ import Foundation
 
 enum PostError: LocalizedError {
     
+    case ckError(Error)
+    case noRecord
+    case noPost
 }

@@ -51,7 +51,7 @@ extension PhotoSelectorViewController: UIImagePickerControllerDelegate, UINaviga
     }
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        picker.dismiss(animated: true)
+        picker.dismiss(animated: true, completion: nil)
     }
     
     func presentImagePickerActionSheet() {
@@ -62,7 +62,7 @@ extension PhotoSelectorViewController: UIImagePickerControllerDelegate, UINaviga
         if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
             actionSheet.addAction(UIAlertAction(title: "Photos", style: .default, handler: { (_) in
                 imagePickerController.sourceType = UIImagePickerController.SourceType.photoLibrary
-                self.present(imagePickerController, animated: true)
+                self.present(imagePickerController, animated: true, completion: nil)
             }))
         }
         if UIImagePickerController.isSourceTypeAvailable(.camera) {

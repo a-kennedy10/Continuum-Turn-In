@@ -31,6 +31,9 @@ class PostDetailTableViewController: UITableViewController {
         guard let post = post else { return }
         PostController.shared.fetchComments(for: post) { (_) in
             DispatchQueue.main.async {
+                PostController.shared.incrementCommentCount(for: post) { (success) in
+                    print("Successfully set comment count")
+                }
                 self.tableView.reloadData()
             }
         }
@@ -87,9 +90,11 @@ class PostDetailTableViewController: UITableViewController {
         let commentAction = UIAlertAction(title: "Comment", style: .default) { (_) in
             guard let commentText = alertController.textFields?.first?.text, !commentText.isEmpty,
                 let post = self.post else { return }
-            PostController.shared.addComment(text: commentText, post: post) { (comment) in
+            PostController.shared.addComment(text: commentText, post: post, completion: { (comment) in
                 
-            }
+            })
+                
+            
             self.tableView.reloadData()
         }
         alertController.addAction(cancelAction)
